@@ -1,0 +1,18 @@
+
+
+[splunk]
+host=localhost
+port=8089
+username=username
+password=password
+
+
+[phase1]
+earliest=-1d
+# remember to reverse the scan so that we can process it in ascending chronological order.
+searchtemplate=search index=main IN=cm (IPT_OP=DROP OR IPT_OP=REJECT) SRC=*:* SRC!=2a03:2880:f003:0c07:face:b00c:* SPT=* DST=* DPT=* | eval epoch_time=_time | reverse
+
+[phase2]
+searchtemplate=search SRC=%SRC% earliest=-1y latest=%LATEST% | eval scan_delay=%LATEST% - _time | eval epoch_time=_time | table _time,epoch_time,SRC,SPT,DST,DPT,scan_delay | reverse
+
+
