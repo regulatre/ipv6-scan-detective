@@ -8,7 +8,7 @@ password=password
 
 
 [phase1]
-earliest=-1d
+earliest=-7d
 # remember to reverse the scan so that we can process it in ascending chronological order.
 searchtemplate=search index=main IN=cm (IPT_OP=DROP OR IPT_OP=REJECT) SRC=*:* SRC!=2a03:2880:f003:0c07:face:b00c:* SPT=* DST=* DPT=* | eval epoch_time=_time | reverse
 

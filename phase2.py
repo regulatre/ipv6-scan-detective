@@ -35,7 +35,7 @@ def getHarvesterSuspects (configMap,svc,scanDict):
 
     # print "  P2 search string: " + searchString
 
-    kwargs_export = {"earliest_time": "-7d",
+    kwargs_export = {"earliest_time": "-30d",
                  "latest_time": "now",
                  "search_mode": "normal",
                  "offset":"0", ## see http://dev.splunk.com/view/python-sdk/SP-CAAAER5 for great pagination example.
