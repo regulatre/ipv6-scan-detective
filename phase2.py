@@ -7,18 +7,47 @@ import re
 # Will hold a table of suspected harvesters
 # key, suspectIP, suspectPort
 suspects = {}
+numSkippedSuspects = 0
 
 
 def getPortName (portnum):
     # TODO: Lookup the service name for a given port.
     return str(portnum)
 
+# We have a suspected packet which will need to be verified. Store it. or for now, print it for manual analysis.
 def addUpdateSuspect(resultObject):
+
+    global numSkippedSuspects
+
+    # Don't print suspects that have a lag greater than 2 hours. This is a temporary provision to reduce the volume of phase-2 matches when addresses were used for very long periods.
+    if float(resultObject["scan_delay"]) > 7200:
+        numSkippedSuspects += 1
+        return
+
+    try:
+        # default cases
+        spt="[not tcp or udp, maybe icmp]"
+        dpt="[not tcp or udp, maybe icmp]"
+
+        # get tcp/udp port nums if available.
+        if "SPT" in resultObject:
+            spt=resultObject["SPT"]
+        if "DPT" in resultObject:
+            dpt=resultObject["DPT"]
+
+
         print "  lag=" + resultObject["scan_delay"] + "s" + \
               " @" + resultObject["_time"] + \
               " epoch=" + resultObject["epoch_time"] + \
-              "  " + resultObject["SRC"] + ":" + getPortName(resultObject["SPT"]) + \
-              " -> " + resultObject["DST"] + ":" + getPortName(resultObject["DPT"])
+              "  " + resultObject["SRC"] + ":" + getPortName(spt) + \
+              " -> " + resultObject["DST"] + ":" + getPortName(dpt) + \
+              " (" + str(numSkippedSuspects) + " packets have been skipped due to excesive scan lag)"
+    except Exception as e:
+        z = e
+        print "<weird packet @ " + resultObject["epoch_time"] + "err=" + str(z) + ">"
+
+
+
 
 # Pass the service to the module and expect summary output.
 # scanDict: The dictionary containing the scan data such as ports scanned, and scan start time.
@@ -35,7 +64,7 @@ def getHarvesterSuspects (configMap,svc,scanDict):
 
     # print "  P2 search string: " + searchString
 
-    kwargs_export = {"earliest_time": "-30d",
+    kwargs_export = {"earliest_time": "-2y",
                  "latest_time": "now",
                  "search_mode": "normal",
                  "offset":"0", ## see http://dev.splunk.com/view/python-sdk/SP-CAAAER5 for great pagination example.
